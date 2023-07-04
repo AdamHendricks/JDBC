@@ -1,83 +1,124 @@
 
-package za.ac.cput.dao;
+package za.ac.cput.universitydb.dao;
 
 import java.sql.*;
 import java.util.ArrayList;
-import za.ac.cput.connection.DBConnection;
-import za.ac.cput.domain.Subject;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import za.ac.cput.universitydb.connection.DBConnection;
+import za.ac.cput.universitydb.domain.subjectWorkerClass;
 
-public class SubjectDAO {
-    private PreparedStatement pstmt;    
+
+public class SubjectDAOv2 {
     private Connection con;
+    private Statement stmt;
+    private PreparedStatement pstmt;
     
-    
-    public SubjectDAO(){
-        try{
-            con = DBConnection.createConnection();
-        }catch(SQLException e){
-            System.out.println("Error trying to get connection.");
-        }
+    public SubjectDAOv2(){
+    try{
+        con = DBConnection.derbyConnection();
+    }catch (Exception exception){
+        System.out.println("Error establishing connection");
     }
+}
     
-    public Subject save(Subject newSubject){
+    public subjectWorkerClass save(subjectWorkerClass subject){
         int ok;
-        String sqlSave = "INSERT INTO RevisionDB VALUES(?, ?)";
         
+        //String sql = "INSERT INTO Subject (subject_Code, subject_Description) VALUES ('%s', '%s')";
+        //Another way to save to databse, using question marks as place holders
+        String insertSql = "INSERT INTO Subject VALUES(?, ?)";
         try{
-            System.out.println("SQL statement: " + sqlSave);
-            pstmt = this.con.prepareStatement(sqlSave);
-            pstmt.setString(1, newSubject.getSbjCode());
-            pstmt.setString(2, newSubject.getSbjDesc());
-            
+            //sql = String.format(sql, subject.getSbjCode(), subject.getDesc());
+            System.out.println("sql: " + insertSql);
+            //stmt = this.con.createStatement();
+            //instead of creating a statement object, we have a prepared statement object
+            pstmt = this.con.prepareStatement(insertSql);
+            pstmt.setString(1, subject.getSbjCode());
+            pstmt.setString(2, subject.getDesc());
+            //ok = stmt.executeUpdate(sql);
             ok = pstmt.executeUpdate();
             
-            if(ok > 1){
-                return newSubject;
+            if(ok > 0){
+                return subject;
             }else{
                 return null;
-            }
-            
-        }catch(SQLException e){
-            System.out.println("Error while saving");
+            } 
+        }catch (SQLException sqlException){
+            System.out.println("Error trying to save");
+        }catch (Exception e){
+            System.out.println("Exception occured while saving");
         }finally{
             try{
-                if(pstmt !=null) 
+                if(pstmt != null)
                     pstmt.close();
-            }catch(SQLException e){
-                System.out.println("Error while trying to close pstmt");
-            }
+        }catch(Exception exception){
+                System.out.println("Error while closing stmt");
         }
+        }
+        
         return null;
     }
     
-    public ArrayList<Subject> getAll(){
-        ArrayList<Subject> subjList = new ArrayList<>();
-        String getAllSql = "SELECT * FROM RevisionDB";
+    public ArrayList<subjectWorkerClass> getAll(){
+        ArrayList<subjectWorkerClass> subjectsList = new ArrayList<>();
         try{
-            System.out.println("SQL statement: " + getAllSql);
+            String getAllSql = "select * from subject";
+            //String getAllSql = "select * from subject where subject_code = ?";
             pstmt = this.con.prepareStatement(getAllSql);
-            ResultSet rs = pstmt.executeQuery();
+            //pstmt.setString(1, "ADP");  //The user or some other method would have to specify this value, it is not usually hardcoded
+            //stmt = this.con.createStatement();
+            //ResultSet rs = stmt.executeQuery(getAllSql);  //We use executeQuery() for statement
+            ResultSet rs = pstmt.executeQuery();    //Becasue it is a prepared statement we are using execute query to retrieve data from the database table
             if(rs != null){
                 while (rs.next()){
                     System.out.println("DB table record: " + rs.getString(1) + 
-                            " " + rs.getString(2));
-                    subjList.add(new Subject(rs.getString("Subject_Code"), 
-                    rs.getString("Subject_Desc")));
-            }
+                            " "+ rs.getString(2));
+                    subjectsList.add(new subjectWorkerClass(rs.getString("subject_code"), 
+                            rs.getString("subject_description")));    //we are adding a new subjectWorkerClass object to our subjectsList ArrayList
+                }
                 rs.close();
             }
-        }catch(SQLException e){
-            System.out.println("Error while getting values from the DB");
+        }catch(Exception exception){
+            System.out.println("Error occured while getting values from table");
         }finally{
             try{
-                if(pstmt != null){
+                if (pstmt != null)
                     pstmt.close();
-                }
-            }catch (SQLException e){
-                System.out.println("Error while closing pstmt in getAll method");
+            } catch (SQLException ex) {
+                System.out.println("SQL Exception occured at getAll");
             }
         }
-        return subjList;
+        return subjectsList;
     }
     
+    public subjectWorkerClass delete(subjectWorkerClass subjectCode){
+        int ok;
+        
+        String deleteSql = "DELETE FROM Subject WHERE subject_code =(?)";
+        try{
+            System.out.println("sql: " + deleteSql);
+            pstmt = this.con.prepareStatement(deleteSql);
+            pstmt.setString(1, subjectCode.getSbjCode());
+            ok = pstmt.executeUpdate();
+            
+            if(ok > 0){
+                return subjectCode;
+            }else{
+                return null;
+            } 
+        }catch (SQLException sqlException){
+            System.out.println("Error while deleting");
+        }catch(Exception e){
+            System.out.println("Exception occured while deleting");
+        }finally{
+            try{
+                if(pstmt != null)
+                    pstmt.close();
+            }catch(SQLException ex){
+                System.out.println("SQL Exception occured while closing pstmt at delete");
+            }
+        }
+        return subjectCode;
+    }
 }
