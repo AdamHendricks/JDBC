@@ -1,0 +1,15 @@
+
+package za.ac.cput.universitydb;
+
+import az.ac.cput.universitydb.gui.subjectDbGui;
+import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
+
+public class RunSubjectDb {
+    public static void main(String[] args) {
+        subjectDbGui gui = new subjectDbGui();
+        gui.setGui();
+        gui.setSize(900,600);
+        gui.setDefaultCloseOperation(EXIT_ON_CLOSE);
+        gui.setVisible(true);
+    }
+}
