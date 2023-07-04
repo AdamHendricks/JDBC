@@ -1,0 +1,83 @@
+
+package za.ac.cput.dao;
+
+import java.sql.*;
+import java.util.ArrayList;
+import za.ac.cput.connection.DBConnection;
+import za.ac.cput.domain.Subject;
+
+public class SubjectDAO {
+    private PreparedStatement pstmt;    
+    private Connection con;
+    
+    
+    public SubjectDAO(){
+        try{
+            con = DBConnection.createConnection();
+        }catch(SQLException e){
+            System.out.println("Error trying to get connection.");
+        }
+    }
+    
+    public Subject save(Subject newSubject){
+        int ok;
+        String sqlSave = "INSERT INTO RevisionDB VALUES(?, ?)";
+        
+        try{
+            System.out.println("SQL statement: " + sqlSave);
+            pstmt = this.con.prepareStatement(sqlSave);
+            pstmt.setString(1, newSubject.getSbjCode());
+            pstmt.setString(2, newSubject.getSbjDesc());
+            
+            ok = pstmt.executeUpdate();
+            
+            if(ok > 1){
+                return newSubject;
+            }else{
+                return null;
+            }
+            
+        }catch(SQLException e){
+            System.out.println("Error while saving");
+        }finally{
+            try{
+                if(pstmt !=null) 
+                    pstmt.close();
+            }catch(SQLException e){
+                System.out.println("Error while trying to close pstmt");
+            }
+        }
+        return null;
+    }
+    
+    public ArrayList<Subject> getAll(){
+        ArrayList<Subject> subjList = new ArrayList<>();
+        String getAllSql = "SELECT * FROM RevisionDB";
+        try{
+            System.out.println("SQL statement: " + getAllSql);
+            pstmt = this.con.prepareStatement(getAllSql);
+            ResultSet rs = pstmt.executeQuery();
+            if(rs != null){
+                while (rs.next()){
+                    System.out.println("DB table record: " + rs.getString(1) + 
+                            " " + rs.getString(2));
+                    subjList.add(new Subject(rs.getString("Subject_Code"), 
+                    rs.getString("Subject_Desc")));
+            }
+                rs.close();
+            }
+        }catch(SQLException e){
+            System.out.println("Error while getting values from the DB");
+        }finally{
+            try{
+                if(pstmt != null){
+                    pstmt.close();
+                }
+            }catch (SQLException e){
+                System.out.println("Error while closing pstmt in getAll method");
+            }
+        }
+        return subjList;
+    }
+    
+}
