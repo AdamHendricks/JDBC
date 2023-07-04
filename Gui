@@ -1,0 +1,164 @@
+
+package az.ac.cput.universitydb.gui;
+
+import java.awt.*;
+import java.awt.event.*;
+import java.sql.Array;
+import java.util.ArrayList;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import za.ac.cput.universitydb.dao.SubjectDAOv2;
+import za.ac.cput.universitydb.domain.subjectWorkerClass;
+
+
+public class subjectDbGui extends JFrame implements ActionListener, ItemListener{
+    private JPanel panelWest, panelWest1, panelWest2, panelEast, panelSouth, panelCenter;
+    private JTextField text1, text2;
+    private JLabel label1, label2, label3;
+    private JButton btn1, btn2, btn3, btn4;
+    private JComboBox comboBox1;
+    private JTable table;
+    private DefaultTableModel tableModel;
+    SubjectDAOv2 dao;
+    subjectWorkerClass subject;
+    
+    ArrayList <subjectWorkerClass> subjectsList = new ArrayList<>();
+    ArrayList <String> sbjCodeAl = new ArrayList<String>();    
+    
+    public subjectDbGui(){
+        super("Add a subject");
+        
+        panelWest = new JPanel();
+        panelWest1 = new JPanel();
+        panelWest2 = new JPanel();
+        panelEast = new JPanel();
+        panelSouth = new JPanel();
+        panelCenter = new JPanel();
+        
+        text1 = new JTextField();
+        text2 = new JTextField();
+        
+        label1 = new JLabel("Subject Code: ");
+        label2 = new JLabel("Subject Description: ");
+        label3 = new JLabel("Delete: ");
+        
+        btn1 = new JButton("Save");
+        btn2 = new JButton("Cancel");
+        btn3 = new JButton("Read");
+        btn4 = new JButton("Delete");
+        
+        comboBox1 = new JComboBox();
+        
+        dao = new SubjectDAOv2();
+    }
+    
+    public void setGui(){
+        panelCenter.setLayout(new FlowLayout());
+        panelWest.setLayout(new GridLayout(2, 2));
+        panelEast.setLayout(new GridLayout(1, 1));
+        panelSouth.setLayout(new GridLayout(1, 4));
+        
+        tableModel = new DefaultTableModel();
+        table = new JTable(tableModel);
+        tableModel.addColumn("Subject Code");
+        tableModel.addColumn("Description");
+        
+        panelCenter.add(panelWest);
+        panelCenter.add(new JScrollPane(table));
+        panelCenter.add(label3);
+        panelCenter.add(comboBox1);
+        panelWest.add(label1);
+        panelWest.add(text1);
+        panelWest.add(label2);
+        panelWest.add(text2);
+        panelSouth.add(btn1);
+        panelSouth.add(btn2);
+        panelSouth.add(btn3);
+        panelSouth.add(btn4);
+        
+        this.add(panelCenter, BorderLayout.CENTER);
+        this.add(panelSouth, BorderLayout.SOUTH);
+        
+        btn1.addActionListener(this);
+        btn2.addActionListener(this);
+        btn3.addActionListener(this);
+        btn4.addActionListener(this);
+        comboBox1.addActionListener(this);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if(e.getSource() == btn1){
+            //get text from textfields
+            String subjectCode = text1.getText();       //this needs to be validated
+            String subjectDescription = text2.getText();
+            
+            //create a worker object
+            subjectWorkerClass subj = new subjectWorkerClass(subjectCode, subjectDescription);
+            
+            //perform db function
+            subject = dao.save(subj);       //as the save method returns type "subjectWorkerClass" we must assign the returned object to a variable of type "subjectWorkerClass"
+            
+            if(subject.equals(subj)){
+                System.out.println("Subject added successfully");
+            }else{
+                System.out.println("Could not add subject");
+            }
+        }else if (e.getSource() == btn2){
+            System.exit(0);
+        }else if (e.getActionCommand().equals("Read")){
+            comboBox1.removeAllItems();
+            
+            subjectsList = dao.getAll();
+            table.setModel(tableModel);
+            tableModel = (DefaultTableModel) table.getModel();
+            tableModel.setRowCount(0);
+            
+            for (int i =0; i < subjectsList.size(); i++){
+                String subjCode = subjectsList.get(i).getSbjCode();
+                String desc = subjectsList.get(i).getDesc();
+                Object [] subjectData = {subjCode, desc};
+                sbjCodeAl.add(subjCode);
+                tableModel.addRow(subjectData);
+            }
+            
+            String [] arr = new String[sbjCodeAl.size()];
+            
+            for (int i = 0; i < sbjCodeAl.size(); i++){
+                arr[i] = sbjCodeAl.get(i);
+            }
+            
+            for (int i = 0; i < sbjCodeAl.size(); i++){
+                comboBox1.addItem(arr[i]);
+            }
+            
+        }else if (e.getActionCommand().equals("Delete")){
+            //String str = comboBox1.getSelectedItem().toString();
+            subjectWorkerClass code = new subjectWorkerClass(comboBox1.getSelectedItem().toString(), null);
+            
+            subject = dao.delete(code);
+            
+            if(subject.equals(code)){
+                System.out.println("Subject deleted successfully");
+            }else{
+                System.out.println("Could not delete subject");
+            }
+        }
+    }
+
+    @Override
+    public void itemStateChanged(ItemEvent e) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+    
+    
+}
+
+/*tableModel = new DefaultTableModel();
+        table1 = new JTable(tableModel);
+        tableModel.addColumn("Title");
+        tableModel.addColumn("Name");
+        
+        panel1.add(new JScrollPane(table1));
+        tableModel.addRow(new Object[]{"Mr", "Steve"});
+*/
