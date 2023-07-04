@@ -1,0 +1,23 @@
+
+package za.ac.cput.universitydb.connection;
+
+import java.sql.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+
+public class DBConnection {
+    
+    //public static Connection con;
+    
+    public static Connection derbyConnection() throws SQLException{      //static because it is not dependant on another object. This method must give us a connection object
+            String DATABASE_URL = "jdbc:derby://localhost:1527/University";
+            String username = "administrator";
+            String password = "admin";
+        
+            System.out.println("About to get connection...");
+            Connection conn = DriverManager.getConnection(DATABASE_URL, username, password);
+            return conn;
+    }
+    
+}
