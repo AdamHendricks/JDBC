@@ -1,0 +1,81 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package za.ac.cput.defaulttablemodelgui;
+
+import java.awt.GridLayout;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.RowFilter;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
+
+/**
+ *
+ * @author burgerr
+ */
+public class SwingTableDemo extends JFrame implements ItemListener{
+    //Step 1:identify GUI components 
+    DefaultTableModel tableModel;
+    JTable table;
+    JPanel topPanel;
+    JPanel bottomPanel;
+    JComboBox cboFilter;
+    
+    //step 2: constructor 
+    public SwingTableDemo(){
+        super("Table Model Demo");
+        this.setLayout(new GridLayout(2, 1));
+        topPanel = new JPanel();
+        bottomPanel = new JPanel();
+    }//end constructor
+  
+    //step 3 : setGui method
+    public void setGui(){
+      cboFilter = new JComboBox(new String[]{"Liverpool", "Man United", "Arsenal", "none"});
+
+      tableModel = new DefaultTableModel();
+      table = new JTable(tableModel);
+      tableModel.addColumn("Player");
+      tableModel.addColumn("Team");
+      tableModel.insertRow(0, new Object[] { "Salah", "Liverpool" });
+      tableModel.insertRow(0, new Object[] { "Rashford", "Man United" });
+      tableModel.addRow( new Object[] {"Zinchenko", "Arsenal"});
+      tableModel.addRow( new Object[] {"Firmino", "Liverpool"});
+      tableModel.insertRow(0, new Object[] { "Casemiro", "Man United" });
+      tableModel.insertRow(0, new Object[] { "Diaz", "Liverpool" });
+      tableModel.insertRow(0, new Object[] { "Maguire", "Man United" });
+      tableModel.insertRow(tableModel.getRowCount(), 
+              new Object[] { "Jesus", "Arsenal" });
+      tableModel.addRow( new Object[] {"Jorginho", "Arsenal"});
+
+      cboFilter.addItemListener(this);
+
+      topPanel.add(cboFilter);
+      bottomPanel.add(new JScrollPane(table));
+      this.add(topPanel);
+      this.add(bottomPanel);       
+    }//end method
+    
+    //step 4: handle events
+    public void itemStateChanged(ItemEvent e){
+        String query = cboFilter.getSelectedItem().toString();
+        teamFilter(query);      
+    }//end method
+    
+    private void teamFilter(String teamQuery){
+        TableRowSorter<DefaultTableModel> trSorter = new TableRowSorter<DefaultTableModel>(tableModel);
+            table.setRowSorter(trSorter);
+        if(!teamQuery.equals("none"))
+            trSorter.setRowFilter(RowFilter.regexFilter(teamQuery));
+        else
+            table.setRowSorter(trSorter);        
+    }//end method
+}//end class
